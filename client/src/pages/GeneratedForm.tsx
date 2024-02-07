@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -143,12 +143,11 @@ export default function GeneratedForm() {
       >
         <header className="fixed left-0 right-0 top-0 z-30 border-b bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-6">
-          
-              <h1 className="font-cursive text-3xl font-bold text-primary">
-                EarnKart
-              </h1>
-      
-{/*             <div className="flex gap-6">
+            <h1 className="font-cursive text-3xl font-bold text-primary">
+              EarnKart
+            </h1>
+
+            {/*             <div className="flex gap-6">
               <ClearFormButton
                 disabled={isPending || mutation.isPending}
                 onClear={() => form.reset()}
@@ -159,7 +158,6 @@ export default function GeneratedForm() {
               >
                 Submit Form
               </Button> */}
-            </div>
           </div>
         </header>
         {isPending ? (

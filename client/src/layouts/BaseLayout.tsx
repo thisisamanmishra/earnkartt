@@ -23,7 +23,7 @@ export default function BaseLayout() {
         <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-6">
           <Link to="/">
             <h1 className="font-cursive text-3xl font-bold text-primary">
-              Form Builder
+              EarnKart
             </h1>
           </Link>
           <nav>

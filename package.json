@@ -7,7 +7,7 @@
     "preview": "pnpm --stream -r run preview"
   },
   "keywords": [],
-  "author": "Rohan Shrestha",
+  "author": "Aman Mishra",
   "license": "ISC",
   "devDependencies": {
     "prettier": "^3.0.3"

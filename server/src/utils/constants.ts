@@ -4,6 +4,8 @@ export const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
   'https://easyformbuilder.netlify.app',
+  'https://main--celadon-frangollo-8e0c48.netlify.app/',
+  'https://earnkart.in/'
 ];
 
 export const accessTokenExpiresIn = '1h';

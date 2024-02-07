@@ -84,11 +84,15 @@ export default function GeneratedForm() {
   const form = useForm();
 
   const redirectToPartnerLink = () => {
-    const url = data.partnerLink;
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      window.open(url, '_blank');
+    const url = data?.partnerLink;
+    if (url) {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        window.open(url, '_blank');
+      } else {
+        window.open('http://' + url, '_blank');
+      }
     } else {
-      window.open('http://' + url, '_blank');
+      console.error('Partner link is not defined.'); // or handle this case in a way appropriate for your application
     }
   };
 

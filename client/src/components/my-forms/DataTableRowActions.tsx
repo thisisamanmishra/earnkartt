@@ -34,7 +34,6 @@ import ResponsesDialog from './ResponsesDialog';
 export default function DataTableRowActions({ formId }: { formId: string }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const formI = formId;
   const queryClient = useQueryClient();
   const axiosPrivate = useAxiosPrivate();
   const { mutate, isPending } = useMutation({

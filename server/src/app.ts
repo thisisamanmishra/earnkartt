@@ -11,7 +11,7 @@ import formRouter from './routes/formRoutes';
 import AppError from './utils/appError';
 import { globalErrorHandler } from './controllers/errorController';
 import verifyJWT from './middleware/verifyJWT';
-import { allowedOrigins } from './utils/constants';
+
 import credentials from './middleware/credentials';
 import logger from './middleware/logger';
 
@@ -27,7 +27,7 @@ app.use(
 app.use(logger);
 
 app.use(credentials);
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({ origin: true }));
 
 app.use(express.static('public'));
 app.use(cookieParser());

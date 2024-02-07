@@ -27,7 +27,7 @@ app.use(
 app.use(logger);
 
 app.use(credentials);
-app.use(cors({ origin: true }));
+app.use(cors({ origin: true, credentials: true }));
 
 app.use(express.static('public'));
 app.use(cookieParser());

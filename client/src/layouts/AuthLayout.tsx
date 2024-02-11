@@ -14,14 +14,14 @@ export default function AuthLayout() {
             </h1>
           </Link>
           <div className="flex gap-6">
-            <Button
+            {/* <Button
               className="border-primary text-primary hover:text-primary"
               variant="outline"
               size="lg"
               asChild
             >
               <Link to="/demo">Demo</Link>
-            </Button>
+            </Button> */}
             <Button size="lg" asChild>
               <Link to={pathname === '/signup' ? '/login' : '/signup'}>
                 {pathname === '/signup' ? 'Log In' : 'Sign Up'}

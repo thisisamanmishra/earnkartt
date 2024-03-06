@@ -66,6 +66,10 @@ export default function GeneratedForm() {
     queryKey: ['forms', id],
     queryFn: () => axios('/forms/' + id).then(res => res.data.data.form),
   });
+  // Function to generate random unique code
+  function generateUniqueCode() {
+    return Math.random().toString(36).substr(2, 8); // Generate a random alphanumeric string
+  }
 
   const mutation = useMutation({
     mutationFn: (
@@ -73,6 +77,7 @@ export default function GeneratedForm() {
         elementType: string;
         question: string;
         answer: unknown;
+        uniqueCode: string;
       }[],
     ) => axios.post('/forms/' + id + '/responses', { response }),
     onSuccess: () => toast.success('Form submitted successfully'),
@@ -82,19 +87,6 @@ export default function GeneratedForm() {
   useTitle(data?.name || 'EarnKart');
 
   const form = useForm();
-
-  const redirectToPartnerLink = () => {
-    const url = data?.partnerLink;
-    if (url) {
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        window.open(url, '_blank');
-      } else {
-        window.open('http://' + url, '_blank');
-      }
-    } else {
-      console.error('Partner link is not defined.'); // or handle this case in a way appropriate for your application
-    }
-  };
 
   useEffect(() => {
     if (!data) return;
@@ -130,9 +122,28 @@ export default function GeneratedForm() {
             ? options.find(({ value }) => value === values[id])?.label ?? null
             : values[id] ?? null,
       }));
+    // Generate unique code
+    const uniqueCode = generateUniqueCode();
 
-    mutation.mutate(response);
-    redirectToPartnerLink();
+    // Include unique code in the response
+    const responseWithCode = response.map(item => ({ ...item, uniqueCode }));
+
+    mutation.mutate(responseWithCode);
+    redirectToPartnerLink(uniqueCode);
+  };
+
+  const redirectToPartnerLink = (uniqueCode: string) => {
+    const url = data?.partnerLink;
+    if (url) {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        const urlWithCode = uniqueCode ? `${url}?code=${uniqueCode}` : url;
+        window.open(urlWithCode, '_blank');
+      } else {
+        window.open('http://' + url, '_blank');
+      }
+    } else {
+      console.error('Partner link is not defined.'); // or handle this case in a way appropriate for your application
+    }
   };
 
   return (
@@ -144,7 +155,7 @@ export default function GeneratedForm() {
         <header className="fixed left-0 right-0 top-0 z-30 border-b bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-6">
             <h1 className="font-cursive text-3xl font-bold text-primary">
-              EarnKart
+              Form
             </h1>
 
             {/*             <div className="flex gap-6">
@@ -172,8 +183,8 @@ export default function GeneratedForm() {
           </div>
         ) : (
           <main className="mx-auto mt-16 h-full w-full max-w-[720px] p-5">
-            <ul className="space-y-5">
-              <li className="rounded-md bg-background px-5 py-3 text-2xl font-medium">
+            <ul className="space-y-5 ">
+              <li className="items-center rounded-md bg-background px-5 py-3 text-2xl font-medium">
                 {data.name}
               </li>
               {data.elements.map(element => (

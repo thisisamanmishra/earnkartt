@@ -6,6 +6,7 @@ interface IFormResponse {
     elementType: string;
     question: string;
     answer: any;
+    uniqueCode: string;
   }[];
 }
 
@@ -21,6 +22,7 @@ const formResponseSchema = new Schema<IFormResponse>(
         elementType: String,
         question: String,
         answer: Schema.Types.Mixed,
+        uniqueCode: String,
       },
     ],
   },

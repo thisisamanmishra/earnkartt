@@ -279,7 +279,7 @@ export default function FormElementCard({
           />
         ) : null}
         {isView && required ? (
-          <div className="pt-1 text-sm text-destructive">* Required</div>
+          <div className="pt-1 text-sm text-destructive"></div>
         ) : null}
       </div>
     </article>

@@ -11,5 +11,8 @@
   "license": "ISC",
   "devDependencies": {
     "prettier": "^3.0.3"
+  },
+  "dependencies": {
+    "excel4node": "^1.8.2"
   }
 }

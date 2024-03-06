@@ -3,7 +3,7 @@ import catchAsyncError from '../utils/catchAsyncError';
 import FormResponse from '../models/formResponseModel';
 import Form from '../models/formModel';
 import AppError from '../utils/appError';
-import json2csv from 'json2csv';
+import ExcelJS from 'exceljs'
 
 // Function to strip HTML tags
 const stripHtmlTags = (htmlString: string) => {
@@ -56,9 +56,9 @@ export const createResponse = catchAsyncError(
   },
 );
 
-export const exportForm =async (req: Request, res: Response) => {
-  try {
 
+export const exportForm = async (req: Request, res: Response) => {
+  try {
     const formId = req.params.id;
     const form = await Form.findById(req.params.id);
 
@@ -73,34 +73,69 @@ export const exportForm =async (req: Request, res: Response) => {
       new Set(responses.flatMap(response => response.response.map(r => stripHtmlTags(r.question))))
     );
 
-    // Prepare CSV data
-    const csvData = json2csv.parse(responses.map(response => {
-      const rowData: Record<string, any> = { formId: formId.toString(), formName: form.name, useruniquecode: response._id.toString(), };
+    // Prepare Excel workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(form.name);
 
-       // Populate rowData with responses
-       response.response.forEach(answer => {
+    // Apply header style with bold font and center alignment for the form name
+    worksheet.getCell('A1').value = form.name;
+    worksheet.getCell('A1').font = { bold: true, size: 24 };
+    worksheet.getCell('A1').alignment = { horizontal: 'center' };
+    worksheet.mergeCells('A1:U1');
+
+    // Write headers for the rest of the data
+    const headers = ['Campaign Name', 'Code', ...uniqueQuestions];
+    const headerRow = worksheet.addRow(headers);
+    headerRow.eachCell(cell => {
+      cell.font = { bold: true };
+    });
+
+    // Process responses and prepare data for Excel rows
+    responses.forEach(response => {
+      const rowData: Record<string, any> = { formName: form.name };
+
+      // Find the response with uniqueCode and include it in rowData
+      const responseWithUniqueCode = response.response.find(r => r.uniqueCode);
+      if (responseWithUniqueCode) {
+        rowData.useruniquecode = responseWithUniqueCode.uniqueCode;
+      }
+
+      // Populate rowData with responses
+      response.response.forEach(answer => {
         const questionName = stripHtmlTags(answer.question);
         rowData[questionName] = answer.answer;
       });
 
-      return rowData;
-    }),
-    { fields: ['formId', 'formName', 'useruniquecode', ...uniqueQuestions], header: true }
-  );
+      // Write rowData to the worksheet
+      worksheet.addRow(Object.values(rowData));
+    });
 
+     // Auto-fit column width based on content
+     worksheet.columns.forEach(column => {
+      if (column && column.key) { // Check if column exists and key is defined
+        let maxLength = 0;
+        worksheet.getColumn(column.key).eachCell({ includeEmpty: true }, cell => {
+          const length = cell.value ? cell.value.toString().length : 10;
+          if (length > maxLength) {
+            maxLength = length;
+          }
+        });
+        column.width = maxLength < 10 ? 10 : maxLength; // Minimum width of 10 characters
+      }
+    });
 
+     // Generate Excel file buffer
+    const excelBuffer = await workbook.xlsx.writeBuffer();
 
-    // Set response headers
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=formResponse_${form.name}.csv`);
+    // Set response headers for Excel download with the correct filename
+    const filename = `${form.name.replace(/[^\w\s]/gi, '')}.xlsx`; // Remove special characters from form name
+    console.log(filename);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(excelBuffer);
 
-    // Write form name as the first row (header)
-    const csvWithHeader = `${form.name}\n${csvData}`;
-
-    // Send CSV data in the response
-    res.status(200).send(csvWithHeader);
   } catch (error) {
-    console.error('Error exporting form data to CSV:', error);
+    console.error('Error exporting form data to Excel:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-}
+};

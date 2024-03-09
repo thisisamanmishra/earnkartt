@@ -44,7 +44,7 @@ const elementGroups = [
     title: 'Text Elements',
     elements: [
       {
-        text: 'Single Line',
+        text: 'Name',
         Icon: TypeIcon,
       },
       {

@@ -136,7 +136,9 @@ export default function GeneratedForm() {
     const url = data?.partnerLink;
     if (url) {
       if (url.startsWith('http://') || url.startsWith('https://')) {
-        const urlWithCode = uniqueCode ? `${url}?code=${uniqueCode}` : url;
+        const urlWithCode = uniqueCode
+          ? url.replace('{uniquecode}', uniqueCode)
+          : url;
         window.open(urlWithCode, '_blank');
       } else {
         window.open('http://' + url, '_blank');
@@ -220,7 +222,7 @@ export default function GeneratedForm() {
                   disabled={!data.isActive}
                   isLoading={mutation.isPending}
                 >
-                  Submit Form
+                  Continue
                 </Button>
               </li>
             </ul>

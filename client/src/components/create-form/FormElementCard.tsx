@@ -159,9 +159,9 @@ export default function FormElementCard({
             </div>
           )}
         </div>
-        {type === 'single-line' ? (
+        {type === 'name' ? (
           <Input
-            placeholder="Single line text"
+            placeholder="Name "
             required={field ? required : false}
             value={field?.value ?? ''}
             onChange={field?.onChange}

@@ -2,7 +2,6 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { DndContext, DragOverlay, useSensor, useSensors } from '@dnd-kit/core';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-
 import { KeyboardSensor, PointerSensor } from '../lib/dndKitSensors';
 import FormElements from '../components/create-form/FormElements';
 import {
@@ -53,6 +52,27 @@ export default function CreateForm({ formType = 'add', form }: Props) {
   const [activeButton, setActiveButton] =
     useState<FormElementButtonProps | null>(null);
   const [isDropped, setIsDropped] = useState(false);
+  const handleAddUniqueCode = () => {
+    const textarea = document.getElementById(
+      'partnerLinkTextarea',
+    ) as HTMLTextAreaElement;
+    if (textarea) {
+      const startPos = textarea.selectionStart || 0;
+      const endPos = textarea.selectionEnd || 0;
+      const value = textarea.value;
+      const newValue =
+        value.substring(0, startPos) + '{uniquecode}' + value.substring(endPos);
+      setPartnerLink(newValue);
+
+      // Calculate the new cursor position after adding the unique code
+      const newCursorPos = startPos + '{uniquecode}'.length;
+  
+      // Restore cursor position after adding the unique code
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }
+  };
+  
 
   const addFormElement = useFormPlaygroundStore(state => state.addFormElement);
   const removeAllFormElements = useFormPlaygroundStore(
@@ -121,7 +141,7 @@ export default function CreateForm({ formType = 'add', form }: Props) {
         setIsDropped(true);
       }}
     >
-      <div className="flex gap-12">
+      <div className="flex flex-col gap-5 md:flex-row md:gap-12">
         <FormElements isUpdate={formType === 'edit'} />
         <form
           className="flex flex-grow flex-col"
@@ -134,8 +154,8 @@ export default function CreateForm({ formType = 'add', form }: Props) {
             mutate();
           }}
         >
-          <section className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 whitespace-nowrap">
+          <section className="mb-3">
+            <div className="flex flex-col items-center gap-3 md:flex-row md:gap-4">
               <label className="font-medium">Form Name:</label>
               <Input
                 required
@@ -144,15 +164,26 @@ export default function CreateForm({ formType = 'add', form }: Props) {
                 onChange={e => setFormName(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-3 whitespace-nowrap">
+            <div className="mt-3 flex flex-col items-center gap-3 md:mt-0 md:flex-row md:gap-4">
               <label className="font-medium">Partner Link:</label>
-              <Input
+              <textarea
+                id="partnerLinkTextarea"
                 required
                 placeholder="Enter Partner Link"
                 value={partnerLink}
                 onChange={e => setPartnerLink(e.target.value)}
+                className="resize rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground hover:border-ring focus-visible:border-primary focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 md:w-screen lg:w-full"
               />
             </div>
+            <button
+              type="button"
+              className="hover:bg-primary-dark ml-2 rounded-md bg-primary px-2 py-1 text-sm font-medium text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+              onClick={handleAddUniqueCode}
+            >
+              Add Unique Code
+            </button>
+          </section>
+          <section className="mt-3 md:mt-5">
             <div className="flex items-center gap-4 text-sm font-medium">
               <div
                 className={`flex items-center gap-2 transition-colors ${
@@ -176,24 +207,24 @@ export default function CreateForm({ formType = 'add', form }: Props) {
                 <span>Preview</span>
               </div>
             </div>
+            {isPreview ? (
+              <FormPreview />
+            ) : (
+              <FormPlayground
+                isDropped={isDropped}
+                resetIsDropped={() => setIsDropped(false)}
+                isUpdate={formType === 'edit'}
+              />
+            )}
           </section>
-          {isPreview ? (
-            <FormPreview />
-          ) : (
-            <FormPlayground
-              isDropped={isDropped}
-              resetIsDropped={() => setIsDropped(false)}
-              isUpdate={formType === 'edit'}
-            />
-          )}
-          <section className="mt-5 flex items-center gap-5 self-end">
+          <section className="mt-5 flex items-center gap-5 md:self-end">
             {isDemo && <DemoInfoCard />}
-            {form ? (
+            {form && (
               <Button onClick={() => navigate('/my-forms')} variant="outline">
                 Cancel
               </Button>
-            ) : null}
-            {formElements.length !== 0 ? (
+            )}
+            {formElements.length !== 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive">
@@ -217,14 +248,14 @@ export default function CreateForm({ formType = 'add', form }: Props) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            ) : null}
+            )}
             <Button
               disabled={isDemo}
               isLoading={isPending}
               className={isDemo ? 'gap-2.5' : ''}
             >
               {isDemo && <LockIcon className="h-[18px] w-[18px]" />}
-              <span>{form ? 'Update Form' : 'Save Form'}</span>
+              <span>{form ? 'Update Form' : 'Create Form'}</span>
             </Button>
           </section>
         </form>

@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
-
-import { Button } from '../ui/Button';
+import { Button } from '../ui/Button'; // Assuming Button component is properly imported
 
 export interface FormElementButtonProps {
   text: string;
@@ -12,17 +11,21 @@ export const FormElementButton = ({
   text,
   Icon,
   className = '',
-}: FormElementButtonProps & { className?: string }) => (
+  onClick,
+}: FormElementButtonProps & { className?: string; onClick?: () => void }) => (
   <Button
     variant="secondary"
     className={`w-full gap-3 transition-all duration-200 hover:shadow ${className}`}
+    onClick={onClick}
   >
     <Icon className="h-[18px] w-[18px]" />
     <span>{text}</span>
   </Button>
 );
 
-export default function DraggableButton(props: FormElementButtonProps) {
+export default function DraggableButton(
+  props: FormElementButtonProps & { onClick?: () => void },
+) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: props.text.toLowerCase().replace(' ', '-'),
     data: { element: props },

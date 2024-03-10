@@ -1,4 +1,5 @@
-import { Link, Outlet, NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Outlet, NavLink, useLocation } from 'react-router-dom';
 import UserNav from '../components/header/UserNav';
 
 const navItems = [
@@ -17,6 +18,14 @@ const navItems = [
 ];
 
 export default function BaseLayout() {
+  const location = useLocation();
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(prevState => !prevState);
+  };
+
   return (
     <>
       <header className="fixed left-0 right-0 top-0 z-30 border-b bg-white/80 backdrop-blur-sm">
@@ -26,19 +35,45 @@ export default function BaseLayout() {
               EarnKart
             </h1>
           </Link>
-          <nav>
-            <ul className="grid h-9 w-96 grid-cols-3 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+          <button
+            className="block focus:outline-none md:hidden"
+            onClick={toggleMenu}
+          >
+            <svg
+              className="h-6 w-6 text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d={
+                  isMenuOpen
+                    ? 'M6 18L18 6M6 6l12 12'
+                    : 'M4 6h16M4 12h16M4 18h16'
+                }
+              />
+            </svg>
+          </button>
+          <nav className="hidden md:block">
+            <ul className="grid h-9 w-96 grid-cols-3 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground md:flex">
               {navItems.map(({ label, href }, i) => (
                 <li key={i}>
                   <NavLink
                     to={href}
-                    className={({ isActive }) =>
-                      `inline-flex w-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        isActive ? 'bg-background text-foreground shadow' : ''
-                      }`
-                    }
+                    className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    {label}
+                    <span
+                      className={
+                        location.pathname === href
+                          ? 'bg-background text-foreground shadow'
+                          : ''
+                      }
+                    >
+                      {label}
+                    </span>
                   </NavLink>
                 </li>
               ))}
@@ -46,6 +81,27 @@ export default function BaseLayout() {
           </nav>
           <UserNav />
         </div>
+        {isMenuOpen && (
+          <nav className="absolute left-0 top-16 w-full bg-muted p-2 md:hidden">
+            <ul>
+              {navItems.map(({ label, href }, i) => (
+                <li key={i}>
+                  <NavLink
+                    to={href}
+                    className={`block px-4 py-2 text-sm font-medium text-muted-foreground ${
+                      location.pathname === href
+                        ? 'bg-background text-foreground shadow'
+                        : ''
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </header>
       <main className="mx-auto mt-16 max-w-[1440px] px-6 py-5">
         <Outlet />

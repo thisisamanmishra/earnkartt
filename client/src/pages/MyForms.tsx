@@ -162,9 +162,9 @@ export default function MyForms() {
         bulkDeleteMutation.mutate(forms);
       }}
       bulkDeleteIsLoading={bulkDeleteMutation.isPending}
-      clickHandler={formId => {
-        window.open(window.location.origin + '/forms/' + formId, '_blank');
-      }}
+      // clickHandler={formId => {
+      //   window.open(window.location.origin + '/forms/' + formId, '_blank');
+      // }}
     />
   );
 }

@@ -177,14 +177,14 @@ export default function CreateForm({ formType = 'add', form }: Props) {
             </div>
             <button
               type="button"
-              className="hover:bg-primary-dark ml-2 rounded-md bg-primary px-2 py-1 text-sm font-medium text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+              className="hover:bg-primary-dark ml-2 mt-4 rounded-md bg-primary px-2 py-1 text-sm font-medium text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
               onClick={handleAddUniqueCode}
             >
               Add Unique Code
             </button>
           </section>
           <section className="mt-3 md:mt-5">
-            <div className="flex items-center gap-4 text-sm font-medium">
+            <div className="mb-2 flex items-center gap-4 text-sm font-medium">
               <div
                 className={`flex items-center gap-2 transition-colors ${
                   isPreview ? '' : 'text-primary'

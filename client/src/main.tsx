@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { CookiesProvider } from 'react-cookie';
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import './styles/globals.css';
 
 import App from './App.tsx';
 import AuthProvider from './contexts/AuthContext.tsx';

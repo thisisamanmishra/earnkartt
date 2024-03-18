@@ -1,9 +1,9 @@
+/* eslint-disable react/prop-types */
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import AuthLayout from './layouts/AuthLayout';
 import Signup from './pages/auth/Signup';
 import RecoverPassword from './pages/auth/RecoverPassword';
-// import SSOLogin from './pages/auth/SSOLogin';
 import ResetPassword from './pages/auth/ResetPassword';
 import RequireAuth from './components/auth/RequireAuth';
 import CreateForm from './pages/CreateForm';
@@ -14,6 +14,43 @@ import Settings from './pages/Settings';
 import MyForms from './pages/MyForms';
 import UpdateForm from './pages/UpdateForm';
 import GeneratedForm from './pages/GeneratedForm';
+import NotAuthorized from './pages/NotAuthorized'; // Ensure you have this component
+import { useCookies } from 'react-cookie';
+import { getDecryptedData } from './utils';
+import Home from './pages/Home';
+
+const isUserApproved = () => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [cookies] = useCookies(['userDetails']);
+  const userDetailsString = cookies.userDetails;
+
+  if (!userDetailsString) {
+    console.error('User details cookie not found');
+    return false;
+  }
+
+  try {
+    // Decrypt the user details string
+    const decryptedData = getDecryptedData(userDetailsString);
+    // Check if decryptedData is an object
+    if (typeof decryptedData === 'object') {
+      if (decryptedData?.id) {
+        localStorage.setItem('userId', decryptedData.id);
+      }
+      return decryptedData?.isApproved || false;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error('Error parsing or decrypting user details:', error);
+    return false;
+  }
+};
+
+// Custom component to conditionally render content based on user approval status
+const ConditionalContent = ({ children }) => {
+  return isUserApproved() ? children : <NotAuthorized />;
+};
 
 const router = createBrowserRouter([
   {
@@ -24,10 +61,6 @@ const router = createBrowserRouter([
         path: '/login',
         element: <Login />,
       },
-      /* {
-        path: '/sso/login',
-        element: <SSOLogin />,
-      }, */
       {
         path: '/signup',
         element: <Signup />,
@@ -58,19 +91,39 @@ const router = createBrowserRouter([
             children: [
               {
                 path: '/',
-                element: <CreateForm />,
+                element: <Home />,
+              },
+              {
+                path: '/createForm',
+                element: (
+                  <ConditionalContent>
+                    <CreateForm />
+                  </ConditionalContent>
+                ),
               },
               {
                 path: '/my-forms',
-                element: <MyForms />,
+                element: (
+                  <ConditionalContent>
+                    <MyForms />
+                  </ConditionalContent>
+                ),
               },
               {
                 path: '/my-forms/:id/edit',
-                element: <UpdateForm />,
+                element: (
+                  <ConditionalContent>
+                    <UpdateForm />
+                  </ConditionalContent>
+                ),
               },
               {
                 path: '/settings',
                 element: <Settings />,
+              },
+              {
+                path: '/home',
+                element: <Home />,
               },
             ],
           },

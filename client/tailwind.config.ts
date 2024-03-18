@@ -14,6 +14,7 @@ export default {
         sans: ['Open Sans', ...defaultTheme.fontFamily.sans],
         mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
         cursive: 'Dancing Script',
+        satoshi: ['Satoshi', 'sans-serif'],
       },
       colors: {
         border: colors.slate[200],

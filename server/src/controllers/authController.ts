@@ -75,62 +75,62 @@ export const signUp = catchAsyncError(
           name: newUser.name,
           email: newUser.email,
           avatar: newUser.avatar,
+          isApproved: false,
         },
       },
     });
   },
 );
 
-export const login = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { cookies } = req;
-    const { email, password } = req.body;
+export const login = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  const { cookies } = req;
+  const { email, password } = req.body;
 
-    if (!email || !password)
-      return next(new AppError('Please provide email and password!', 400));
+  if (!email || !password)
+    return next(new AppError('Please provide email and password!', 400));
 
-    const foundUser = await User.findOne({ email }).select('+password').exec();
-    if (!foundUser || !(await compare(password, foundUser.password)))
-      return next(new AppError('Incorrect email or password!', 401));
+  const foundUser = await User.findOne({ email }).select('+password').exec();
+  if (!foundUser || !(await compare(password, foundUser.password)))
+    return next(new AppError('Incorrect email or password!', 401));
 
-    const newRefreshToken = signRefreshToken(foundUser._id.toString());
-    let newRefreshTokenArray = !cookies?.refreshToken
-      ? foundUser.refreshToken
-      : foundUser.refreshToken.filter(r => r !== cookies.refreshToken);
-    if (cookies?.refreshToken) {
-      /* For this scenario: 
-        1) User logs in but never uses refresh token and does not log out
-        2) Refresh token is stolen
-        3) If 1 and 2 happen, reuse detection is needed to clear all refresh tokens when user logs in 
-      */
-      const foundToken = await User.findOne({
-        refreshToken: cookies.refreshToken,
-      }).exec();
-      // Detected refresh token reuse
-      if (!foundToken) newRefreshTokenArray = [];
+  const newRefreshToken = signRefreshToken(foundUser._id.toString());
+  let newRefreshTokenArray = !cookies?.refreshToken
+    ? foundUser.refreshToken
+    : foundUser.refreshToken.filter(r => r !== cookies.refreshToken);
+  if (cookies?.refreshToken) {
+    /* For this scenario: 
+      1) User logs in but never uses refresh token and does not log out
+      2) Refresh token is stolen
+      3) If 1 and 2 happen, reuse detection is needed to clear all refresh tokens when user logs in 
+    */
+    const foundToken = await User.findOne({
+      refreshToken: cookies.refreshToken,
+    }).exec();
+    // Detected refresh token reuse
+    if (!foundToken) newRefreshTokenArray = [];
 
-      res.clearCookie('refreshToken', cookieOptions);
-    }
+    res.clearCookie('refreshToken', cookieOptions);
+  }
 
-    foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-    await foundUser.save();
+  foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+  await foundUser.save();
 
-    res.cookie('refreshToken', newRefreshToken, cookieOptions);
+  res.cookie('refreshToken', newRefreshToken, cookieOptions);
 
-    res.status(200).json({
-      status: 'success',
-      accessToken: signAccessToken(foundUser._id.toString()),
-      data: {
-        user: {
-          id: foundUser._id,
-          name: foundUser.name,
-          email: foundUser.email,
-          avatar: foundUser.avatar,
-        },
+  res.status(200).json({
+    status: 'success',
+    accessToken: signAccessToken(foundUser._id.toString()),
+    data: {
+      user: {
+        id: foundUser._id,
+        name: foundUser.name,
+        email: foundUser.email,
+        avatar: foundUser.avatar,
+        isApproved: foundUser.isApproved,
       },
-    });
-  },
-);
+    },
+  });
+});
 
 export const logout = catchAsyncError(async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
@@ -283,3 +283,148 @@ export const googleLogin = catchAsyncError(
     });
   },
 );
+
+// --Admin Controllers
+
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const users = await User.find({}, '-password').exec();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        users: users.map(user => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          isApproved: user.isApproved,
+        })),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllDisapprovedUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const disapprovedUsers = await User.find({ isApproved: false }, '-password').exec();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        users: disapprovedUsers.map(user => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          isApproved: user.isApproved,
+        })),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllApprovedUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const approvedUsers = await User.find({ isApproved: true }, '-password').exec();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        users: approvedUsers.map(user => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          isApproved: user.isApproved,
+        })),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const approveUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+
+    user.isApproved = true;
+    await user.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'User approved successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          isApproved: user.isApproved,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const disapproveUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+
+    user.isApproved = false;
+    await user.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'User disapproved successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          isApproved: user.isApproved,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

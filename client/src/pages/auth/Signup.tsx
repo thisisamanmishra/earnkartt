@@ -65,7 +65,7 @@ export default function Signup() {
         });
 
         toast.success('Account created successfully');
-        navigate('/');
+        navigate('/login');
       },
       onError: err => {
         if (isAxiosError(err)) {

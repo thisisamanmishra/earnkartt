@@ -5,7 +5,7 @@ import UserNav from '../components/header/UserNav';
 const navItems = [
   {
     label: 'Create Form',
-    href: '/',
+    href: '/createForm',
   },
   {
     label: 'My Forms',

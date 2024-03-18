@@ -6,12 +6,14 @@ import {
   getAllForms,
   getForm,
   updateForm,
+  getAllFormsAdmin,
 } from '../controllers/formController';
 import verifyJWT from '../middleware/verifyJWT';
 import {
   createResponse,
   getAllResponses,
-  exportForm
+  exportForm,
+  getTotalResponses,
 } from '../controllers/formResponseController';
 
 const router = Router();
@@ -29,5 +31,7 @@ router
   .post(createResponse);
 
   router.get('/exceldownload/:id', exportForm);
+  router.get('/admin/getForms/:id', getAllFormsAdmin);
+  router.get('/:id/getallresponse',getTotalResponses);
 
 export default router;

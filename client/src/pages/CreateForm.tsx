@@ -66,13 +66,12 @@ export default function CreateForm({ formType = 'add', form }: Props) {
 
       // Calculate the new cursor position after adding the unique code
       const newCursorPos = startPos + '{uniquecode}'.length;
-  
+
       // Restore cursor position after adding the unique code
       textarea.focus();
       textarea.setSelectionRange(newCursorPos, newCursorPos);
     }
   };
-  
 
   const addFormElement = useFormPlaygroundStore(state => state.addFormElement);
   const removeAllFormElements = useFormPlaygroundStore(

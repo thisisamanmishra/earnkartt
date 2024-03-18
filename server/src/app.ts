@@ -14,6 +14,7 @@ import verifyJWT from './middleware/verifyJWT';
 
 import credentials from './middleware/credentials';
 import logger from './middleware/logger';
+import unauthenticatedRoute from './middleware/unauthenticatedRoute';
 
 const app: Application = express();
 
@@ -38,8 +39,10 @@ app.use(mongoSanitize());
 
 app.use(hpp());
 
+
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/forms', formRouter);
+app.use(unauthenticatedRoute);
 app.use(verifyJWT);
 app.use('/api/v1/user', userRouter);
 

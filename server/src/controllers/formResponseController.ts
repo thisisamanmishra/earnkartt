@@ -3,30 +3,14 @@ import catchAsyncError from '../utils/catchAsyncError';
 import FormResponse from '../models/formResponseModel';
 import Form from '../models/formModel';
 import AppError from '../utils/appError';
-import ExcelJS from 'exceljs'
+import ExcelJS from 'exceljs';
+import User from '../models/userModel';
 
 // Function to strip HTML tags
 const stripHtmlTags = (htmlString: string) => {
   return htmlString.replace(/<\/?[^>]+(>|$)/g, '');
 };
 
-
-
-export const getAllResponses = catchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const form = await Form.findById(req.params.id);
-    if (!form) return next(new AppError('No form found with that ID', 404));
-
-    const responses = await FormResponse.find({ form: req.params.id }).exec();
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        responses,
-      },
-    });
-  },
-);
 
 export const createResponse = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -37,6 +21,17 @@ export const createResponse = catchAsyncError(
 
     const form = await Form.findById(req.params.id);
     if (!form) return next(new AppError('No form found with that ID', 404));
+
+    const ownerId = form.user;
+
+    // Fetch the form owner's details
+    const ownerDetails = await User.findById(ownerId);
+    if (!ownerDetails || !ownerDetails.isApproved) {
+      form.isActive = false; // Set the form as inactive
+      await form.save(); // Save the changes
+      return next(new AppError('The form is no longer accepting submissions', 403));
+    }
+
     if (!form.isActive)
       return next(
         new AppError('The form is no longer accepting submissions', 400),
@@ -51,6 +46,23 @@ export const createResponse = catchAsyncError(
       status: 'success',
       data: {
         response: newResponse,
+      },
+    });
+  },
+);
+
+
+export const getAllResponses = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const form = await Form.findById(req.params.id);
+    if (!form) return next(new AppError('No form found with that ID', 404));
+
+    const responses = await FormResponse.find({ form: req.params.id }).exec();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        responses,
       },
     });
   },
@@ -139,3 +151,49 @@ export const exportForm = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+export const getTotalResponses = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Aggregate the responses to group them by form and count the total responses for each form
+      const totalResponsesByForm = await FormResponse.aggregate([
+        {
+          $group: {
+            _id: '$form',
+            totalResponses: { $sum: 1 },
+          },
+        },
+        {
+          $lookup: {
+            from: 'forms', // Assuming the collection name for Form model is 'forms'
+            localField: '_id',
+            foreignField: '_id',
+            as: 'formDetails',
+          },
+        },
+        {
+          $unwind: '$formDetails',
+        },
+        {
+          $project: {
+            _id: 0,
+            formId: '$_id',
+            formName: '$formDetails.name',
+            totalResponses: 1,
+          },
+        },
+        {
+          $sort: { formName: 1, formId: 1 }, // Sort by formName and form ID
+        },
+      ]);
+
+      res.status(200).json({
+        status: 'success',
+        data: {
+          totalResponsesByForm,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);

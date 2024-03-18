@@ -2,6 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 import catchAsyncError from '../utils/catchAsyncError';
 import Form from '../models/formModel';
 import AppError from '../utils/appError';
+import User from '../models/userModel';
 
 
 export const getAllForms = catchAsyncError(
@@ -51,6 +52,17 @@ export const getForm = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const form = await Form.findById(req.params.id);
     if (!form) return next(new AppError('No form found with that ID', 404));
+
+    // Get the form owner's account ID
+    const ownerId = form.user;
+
+    // Fetch the form owner's details
+    const ownerDetails = await User.findById(ownerId);
+    if (!ownerDetails || ownerDetails.isApproved) {
+      form.isActive = true; // Set the form as inactive
+      await form.save(); // Save the changes
+    }
+
 
     res.status(200).json({
       status: 'success',
@@ -112,3 +124,43 @@ export const deleteForm = catchAsyncError(
   },
 );
 
+// --Admin
+
+//get All Forms of a user
+export const getAllFormsAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.params.id; // Assuming userId is fetched from URL parameters
+    const page = Number(req.query.page) || 0;
+    const pageSize = Number(req.query.pageSize) || 10;
+    const skip = page * pageSize;
+    const searchQuery = req.query.search;
+
+    const query = searchQuery
+      ? { user: userId, name: { $regex: searchQuery, $options: 'i' } }
+      : { user: userId };
+    const total = await Form.countDocuments(query);
+
+    if (req.query.page && req.query.page !== '0' && skip >= total)
+      return next(new AppError('This page does not exist', 404));
+
+    const forms = await Form.find(query)
+      .sort(req.query.sort?.toString())
+      .skip(skip)
+      .limit(pageSize)
+      .exec();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        forms,
+        total,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

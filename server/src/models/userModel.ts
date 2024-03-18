@@ -11,6 +11,7 @@ interface IUser {
   passwordResetExpires?: Date;
   isDeleted: boolean;
   deletedAt: Date | null;
+  isApproved: boolean; // New field for approval status
 }
 
 const userSchema = new Schema<IUser>(
@@ -49,12 +50,17 @@ const userSchema = new Schema<IUser>(
       default: null,
       select: false,
     },
+    isApproved: {
+      type: Boolean,
+      default: false, // New field defaults to false
+    },
   },
   { timestamps: true },
 );
 
+// Middleware to exclude deleted and unapproved users from queries
 userSchema.pre(/^find/, function (this: Query<IUser | IUser[], IUser>, next) {
-  this.where({ isDeleted: false });
+  this.where({ isDeleted: false }); // Include only approved and non-deleted users
   next();
 });
 

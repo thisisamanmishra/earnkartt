@@ -47,8 +47,14 @@ const isUserApproved = () => {
   }
 };
 
-// Custom component to conditionally render content based on user approval status
-const ConditionalContent = ({ children }) => {
+interface ConditionalContentProps {
+  children: React.ReactNode;
+}
+
+// Use the defined props type in your component
+const ConditionalContent: React.FC<ConditionalContentProps> = ({
+  children,
+}) => {
   return isUserApproved() ? children : <NotAuthorized />;
 };
 

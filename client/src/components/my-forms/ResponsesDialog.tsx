@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -85,11 +85,11 @@ export default function ResponsesDialog({
         return answer;
     }
   };
-  const dataLength = data?.length ?? 0;
 
   // Declare uniqueQuestions inside the component
-  const uniqueQuestions =
-    dataLength > 0 ? data[0].response.map(({ question }) => question) : [];
+  const uniqueQuestions = data
+    ? data[0]?.response.map(({ question }) => question)
+    : [];
 
   return (
     <Dialog

@@ -75,7 +75,6 @@ function Home() {
     // Extract form names and total responses from the response data
     const labels = totalResponses.map(item => item.formName);
     const totalResponsesData = totalResponses.map(item => item.totalResponses);
-    console.log(labels);
 
     // Chart 1
     const lineChartElement = document.getElementById(
@@ -175,7 +174,7 @@ function Home() {
 
     // Create a new chart instance
     const newDoughnutChart = createDoughnutChart();
-    setDoughnutChart(newDoughnutChart);
+    setDoughnutChart(newDoughnutChart as Chart | null);
 
     // Clean up on component unmount
     return () => {
